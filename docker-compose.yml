@@ -1,0 +1,95 @@
+version: '3'
+services:
+
+  applications:
+    image: tianon/true
+    volumes:
+        - ${APPLICATION_PATH}:/var/www
+        
+  php-fpm:
+    container_name: alpine_php
+    build: 
+      context: ./docker_file/php
+      args:
+        - PHP_VERSION=${PHP_VERSION}
+        - INSTALL_XDEBUG=${INSTALL_XDEBUG}
+        - INSTALL_PHPREDIS=${INSTALL_PHPREDIS}
+    volumes:
+        - '${APPLICATION_PATH}:/var/www'
+    restart: always
+    expose:
+      - "${PHP_FPM_PORT}"
+    extra_hosts:
+      - "localhost:127.0.0.1"
+    networks:
+      - backend
+
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin/phpmyadmin
+    ports:
+        - "${PMA_PORT}:80"
+    environment:
+        - PMA_ARBITRARY=1
+        - PMA_HOST=${PMA_HOST}
+        - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+        - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    restart: always
+    depends_on:
+        - db
+    networks:
+      - phpmyadmin
+
+  db:
+    container_name: mysql
+    build: 
+      context: ./docker_file/mysql
+      args:
+        - MYSQL_VERSION=${MYSQL_VERSION}
+    environment:
+        - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+        - TZ=${WORKSPACE_TIMEZONE}
+    restart: always
+    volumes:
+      - ${MYSQL_CONF}:/etc/mysql/conf.d/my.cnf
+      - ${MYSQL_DATA_PATH}:/var/lib/mysql
+    ports:
+      - '${DATABASE_PORT}:3306'
+    networks:
+      - backend
+      - phpmyadmin
+      
+  redis:
+    container_name: alpine_redis
+    build: ./docker_file/redis
+    ports:
+        - "${REDIS_PORT}:6379"
+    restart: always
+    networks:
+      - backend
+
+  nginx:
+    depends_on:
+      - applications
+      - php-fpm
+    container_name: alpine_nginx
+    build: ./docker_file/nginx
+    ports:
+      - '${NGINX_HTTP_PORT}:80'
+      - '${NGINX_HTTPS_PORT}:443'
+    volumes:
+      - '${NGINX_VHOST_PATH}:/etc/nginx/conf.d'
+      - '${NGINX_SSL_PATH}:/etc/nginx/ssl'
+      - '${NGINX_LOGS_PATH}:/var/log/nginx'
+      - '${APPLICATION_PATH}:/var/www'
+    restart: always
+    networks:
+      - backend
+    privileged: true
+    tty: true
+  
+networks:
+  backend:
+    driver: '${NETWORK_DRIVER}'
+  phpmyadmin:
+    driver: '${NETWORK_DRIVER}'
