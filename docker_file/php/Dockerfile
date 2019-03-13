@@ -12,7 +12,8 @@ ARG INSTALL_XDEBUG=${INSTALL_XDEBUG}
 ARG INSTALL_PHPREDIS=${INSTALL_PHPREDIS}
 RUN if [ ${INSTALL_XDEBUG} = true ] ; then \
         # Install the xdebug extension
-        pecl install xdebug && \
+        apk add --no-cache -q autoconf build-base libgit2-dev && \
+        pecl install xdebug  && \
         docker-php-ext-enable xdebug \
     ;fi && \
     if [ ${INSTALL_PHPREDIS} = true ] ; then \

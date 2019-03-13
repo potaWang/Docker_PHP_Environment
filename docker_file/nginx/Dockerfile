@@ -1,6 +1,7 @@
 FROM nginx:1.15.6-alpine
 LABEL maintainer="pota <wrpota@gmail.com>"
-ENV TZ=Asia/Shanghai
+ENV TZ=${WORKSPACE_TIMEZONE}
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN mkdir -p /run/nginx \
     && sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
