@@ -1,5 +1,5 @@
 ARG PHP_VERSION=${PHP_VERSION}
-FROM php:${PHP_VERSION}-fpm
+FROM php:${PHP_VERSION}-fpm-alpine
 LABEL maintainer="pota <wrpota@gmail.com>"
 
 ENV TZ=${WORKSPACE_TIMEZONE}
@@ -17,11 +17,14 @@ RUN if [ ${INSTALL_XDEBUG} = true ] ; then \
     ;fi && \
     if [ ${INSTALL_PHPREDIS} = true ] ; then \
         # Install the redis extension
+        apk add --no-cache --virtual .buildPacks autoconf g++ make && \
+        apk add --no-cache icu-dev && \
         pecl install redis && \
         docker-php-ext-enable redis && \
         rm -rf /tmp/pear \
     ;fi && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/cache/apk/*
+    # rm -rf /var/lib/apt/lists/*
 
 COPY ./xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
 
