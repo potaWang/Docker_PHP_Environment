@@ -2,9 +2,25 @@ version: '3'
 services:
 
   applications:
-    image: tianon/true
+    container_name: application
+    build:
+      context: ./docker_file/applications
+      args:
+        - PHP_VERSION=${PHP_VERSION}
+    environment:
+        - TZ=${WORKSPACE_TIMEZONE}
+        - PHP_VERSION=${PHP_VERSION}
+        - PUID=${PUID}
+        - PGID=${PGID}
     volumes:
-        - ${APPLICATION_PATH}:/var/www
+        - '${APPLICATION_PATH}:/var/www'
+    restart: always
+    expose:
+      - "${PHP_FPM_PORT}"
+    ports:
+        - "${WORKSPACE_SSH_PORT}:22"
+    networks:
+      - backend
         
   php-fpm:
     container_name: alpine_php

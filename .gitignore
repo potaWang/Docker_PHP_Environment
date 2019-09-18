@@ -6,3 +6,4 @@ data/*
 
 logs/nginx/*
 !logs/nginx/.gitignore
+!config/nginx/vhost/.gitignore
