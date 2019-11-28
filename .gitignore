@@ -1,3 +1,4 @@
+.idea
 .DS_Store
 .env
 
@@ -7,3 +8,8 @@ data/*
 logs/nginx/*
 !logs/nginx/.gitignore
 !config/nginx/vhost/.gitignore
+
+.docker-sync
+!.docker-sync/.gitignore
+
+www
